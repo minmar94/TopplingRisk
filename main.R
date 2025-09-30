@@ -36,7 +36,21 @@ summary(fit_fti)
 fit_all <- glm(fall ~ x*y*type, data = dat_long, family = "binomial")
 summary(fit_all)
 
+### Likelihood Ratio Test ###
+fit_red <- glm(fall ~ x + y + type, data = dat_long, family = "binomial")
+anova(fit_red, fit_all)
 
+### 10-CROSS-VALIDATION ERROR ###
+set.seed(0706)
+foldsid <- caret::createFolds(dat_long$fall, k = 10)
+acc <- c()
+for(k in 1:length(foldsid)){
+  fit <- glm(fall ~ x*y*type, data = dat_long[-foldsid[[k]],], family = "binomial")
+  pred <- predict.glm(fit, newdata = dat_long[foldsid[[k]],], type = "response")
+  tb <- table(dat_long$fall[foldsid[[k]]], as.numeric(pred>.5))
+  acc[k] <- sum(diag(tb))/sum(tb)
+}
+summary(acc)
 
 # Results -----------------------------------------------------------------
 
